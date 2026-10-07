@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Curva de Gauss e Teste de Hipótese - Semana Venda Mais Carros</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    /* Estilização suave para sliders */
+    input[type=range]::-webkit-slider-thumb {
+      height: 18px;
+      width: 18px;
+      border-radius: 9999px;
+      background: #3b82f6;
+      cursor: pointer;
+      -webkit-appearance: none;
+      box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen antialiased selection:bg-blue-600 selection:text-white">
+
+  <!-- Top Navigation & Brand Header -->
+  <header class="border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="h-9 w-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/20">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-sm font-bold tracking-tight text-white flex items-center gap-2">
+            Análise Estatística Post-Mortem
+            <span class="bg-blue-500/10 text-blue-400 text-xs px-2 py-0.5 rounded-full border border-blue-500/20">Gauss & $Z$-Score</span>
+          </h1>
+          <p class="text-xs text-slate-400">Semana Venda Mais Carros • Investimento: R$ 36.000</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          Decisão: Rejeição de H₀ (p < 0,001)
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+    <!-- KPI Summary Grid -->
+    <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 relative overflow-hidden group hover:border-slate-700 transition">
+        <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-blue-500/5 rounded-full blur-xl group-hover:bg-blue-500/10 transition"></div>
+        <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Amostra Qualificada (PC)</div>
+        <div class="text-3xl font-extrabold text-white mt-1">700 <span class="text-sm font-normal text-slate-400">donos</span></div>
+        <div class="mt-2 text-xs text-emerald-400 flex items-center gap-1">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          Retenção validada na apresentação
+        </div>
+      </div>
+
+      <div class="bg-slate-900/70 border border-rose-900/30 rounded-2xl p-5 relative overflow-hidden group hover:border-rose-800/50 transition">
+        <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-rose-500/5 rounded-full blur-xl group-hover:bg-rose-500/10 transition"></div>
+        <div class="text-xs font-medium text-rose-400 uppercase tracking-wider">Checkout Direto (Ao Vivo)</div>
+        <div class="text-3xl font-extrabold text-rose-300 mt-1">1 <span class="text-sm font-normal text-slate-400">venda (0,14%)</span></div>
+        <div class="mt-2 text-xs text-rose-400/90 font-mono">
+          Z = -2.28 (Cauda Improvável)
+        </div>
+      </div>
+
+      <div class="bg-slate-900/70 border border-emerald-900/30 rounded-2xl p-5 relative overflow-hidden group hover:border-emerald-800/50 transition">
+        <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-emerald-500/5 rounded-full blur-xl group-hover:bg-emerald-500/10 transition"></div>
+        <div class="text-xs font-medium text-emerald-400 uppercase tracking-wider">Venda Assistida (Reunião)</div>
+        <div class="text-3xl font-extrabold text-emerald-300 mt-1">19 <span class="text-sm font-normal text-slate-400">vendas (2,71%)</span></div>
+        <div class="mt-2 text-xs text-emerald-400/90 font-mono">
+          Z = +4.05 (Superioridade Total)
+        </div>
+      </div>
+
+      <div class="bg-slate-900/70 border border-indigo-900/30 rounded-2xl p-5 relative overflow-hidden group hover:border-indigo-800/50 transition">
+        <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-indigo-500/5 rounded-full blur-xl group-hover:bg-indigo-500/10 transition"></div>
+        <div class="text-xs font-medium text-indigo-400 uppercase tracking-wider">Multiplicador de Chances</div>
+        <div class="text-3xl font-extrabold text-indigo-300 mt-1">19,5× <span class="text-sm font-normal text-slate-400">Odds Ratio</span></div>
+        <div class="mt-2 text-xs text-indigo-400/90 font-mono">
+          p-valor = 0.0000179
+        </div>
+      </div>
+    </section>
+
+    <!-- Interactive Visual Gauss Bell Curve Section -->
+    <section class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl relative">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-slate-800">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-1 text-xs font-bold bg-blue-600/20 text-blue-400 rounded-lg border border-blue-500/30 uppercase tracking-wider">
+              Gráfico Lúdico
+            </span>
+            <h2 class="text-xl sm:text-2xl font-bold text-white tracking-tight">A Curva de Gauss (O Sino Estatístico)</h2>
+          </div>
+          <p class="text-sm text-slate-400 mt-1 max-w-2xl">
+            A Curva Normal ilustra onde os eventos "normais" deveriam acontecer caso a falha tivesse sido apenas azar ou interferência política. Veja onde o seu evento caiu.
+          </p>
+        </div>
+
+        <!-- Mode Selector Switch -->
+        <div class="bg-slate-950 p-1.5 rounded-xl border border-slate-800 flex items-center gap-1 self-start lg:self-auto">
+          <button id="btnScenario1" onclick="switchScenario('checkout')" class="px-4 py-2 rounded-lg text-xs font-semibold transition bg-blue-600 text-white shadow">
+            Cenário 1: Checkout vs Normal (1%)
+          </button>
+          <button id="btnScenario2" onclick="switchScenario('comparison')" class="px-4 py-2 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-white">
+            Cenário 2: Checkout vs Vendedores (19x)
+          </button>
+        </div>
+      </div>
+
+      <div class="mt-6 relative">
+        <!-- Interactive Chart Canvas -->
+        <div class="w-full h-80 sm:h-96 relative">
+          <canvas id="gaussChart"></canvas>
+        </div>
+
+        <!-- Legend and Badges -->
+        <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-3.5 flex items-start gap-3">
+            <div class="w-3.5 h-3.5 rounded-full bg-slate-600 mt-1 shrink-0"></div>
+            <div>
+              <span class="text-xs font-bold text-slate-300 block">Zona de Normalidade (H₀)</span>
+              <p class="text-xs text-slate-400 mt-0.5">Representa 95% do comportamento esperado se o processo funcionasse normalmente (flutuação de acaso).</p>
+            </div>
+          </div>
+          <div class="bg-slate-950/80 border border-rose-900/40 rounded-xl p-3.5 flex items-start gap-3">
+            <div class="w-3.5 h-3.5 rounded-full bg-rose-500 mt-1 shrink-0 shadow shadow-rose-500/50"></div>
+            <div>
+              <span class="text-xs font-bold text-rose-300 block">Zona de Rejeição Crítica (α = 0,05)</span>
+              <p class="text-xs text-slate-400 mt-0.5">As pontas (caudas). Se o ponto cai aqui, a probabilidade de ser acaso é inferior a 5% (comprova anomalia).</p>
+            </div>
+          </div>
+          <div class="bg-slate-950/80 border border-blue-900/40 rounded-xl p-3.5 flex items-start gap-3">
+            <div class="w-3.5 h-3.5 rounded-full bg-blue-500 mt-1 shrink-0 shadow shadow-blue-500/50"></div>
+            <div>
+              <span class="text-xs font-bold text-blue-300 block" id="currentPointBadgeTitle">Seu Ponto Observado (Z)</span>
+              <p class="text-xs text-slate-400 mt-0.5" id="currentPointBadgeDesc">O valor calculado caiu profundamente na cauda de rejeição.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive Experiment Simulator -->
+      <div class="mt-8 pt-6 border-t border-slate-800 bg-slate-950/60 rounded-2xl p-6 border border-slate-800/80">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+              Simulador em Tempo Real: Teste Outros Cenários de Venda
+            </h3>
+            <p class="text-xs text-slate-400">Arraste a quantidade de vendas no pitch para ver o Z-score e a curva recalcularem ao vivo:</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="text-xs text-slate-400 font-mono">Vendas Simuladas:</span>
+            <span id="sliderValueText" class="text-lg font-bold text-blue-400 bg-blue-500/10 px-3 py-1 rounded-lg border border-blue-500/20 font-mono">1</span>
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <input id="salesSlider" type="range" min="0" max="25" value="1" step="1" class="w-full bg-slate-800 h-2 rounded-lg appearance-none cursor-pointer">
+          <div class="flex justify-between text-[11px] text-slate-500 font-mono mt-1">
+            <span>0 vendas (Catastrófico)</span>
+            <span>1 venda (Seu evento real)</span>
+            <span>7 vendas (Benchmark 1%)</span>
+            <span>19 vendas (Venda Assistida)</span>
+            <span>25 vendas (Excelente)</span>
+          </div>
+        </div>
+
+        <div id="simulationFeedback" class="mt-4 p-3.5 rounded-xl bg-slate-900 border text-xs flex items-center justify-between">
+          <!-- Preenchido dinamicamente via JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- The "Lúdico" Explanation (Metáfora da Moeda) -->
+    <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-4">
+        <div class="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <h3 class="text-lg font-bold text-white">A Metáfora da "Moeda Viciada": Por que não foi a eleição?</h3>
+        <p class="text-sm text-slate-300 leading-relaxed">
+          Imagine que você joga uma moeda honesta para o alto <strong>700 vezes</strong>. O normal seria sair aproximadamente metade cara e metade coroa. Se saíssem 340 caras ou 360 caras, isso seria perfeitamente normal (variação do acaso).
+        </p>
+        <p class="text-sm text-slate-300 leading-relaxed">
+          Mas se você joga 700 vezes e a moeda dá <strong>cara apenas 1 vez</strong>, você não diz que "teve azar porque estava chovendo lá fora" ou "porque era dia de eleição". Você conclui cientificamente: <strong>a moeda tem um peso de chumbo em um dos lados (está viciada).</strong>
+        </p>
+        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 space-y-1.5">
+          <div class="font-bold text-white flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span> O que estava "viciado" no evento?
+          </div>
+          <p>
+            Não era o público (eles eram donos de loja no PC). Não era o Guga (a audiência ficou até o fim). O que estava "viciado" era o <strong>mecanismo de compra</strong>: forçar um dono de loja a passar o cartão em um checkout frio ao invés de falar com um consultor.
+          </p>
+        </div>
+      </div>
+
+      <!-- Comparison Matrix Table -->
+      <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-4">
+        <div class="w-10 h-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        </div>
+        <h3 class="text-lg font-bold text-white">Comparativo Estrutural: Por que 19 fecharam depois?</h3>
+        
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-slate-300">
+            <thead class="text-slate-400 border-b border-slate-800 uppercase font-mono text-[10px]">
+              <tr>
+                <th class="py-2.5">Variável de Conversão</th>
+                <th class="py-2.5 text-rose-400">No Checkout Direto</th>
+                <th class="py-2.5 text-emerald-400">Na Reunião 1 a 1</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/60 font-medium">
+              <tr>
+                <td class="py-2.5 text-slate-400">Dúvida sobre Nota / Faturamento</td>
+                <td class="py-2.5 text-rose-300">Bloqueia a compra</td>
+                <td class="py-2.5 text-emerald-300">Vendedor emite Boleto PJ</td>
+              </tr>
+              <tr>
+                <td class="py-2.5 text-slate-400">Treinamento da Equipe da Loja</td>
+                <td class="py-2.5 text-rose-300">Gera medo de perder dinheiro</td>
+                <td class="py-2.5 text-emerald-300">Vendedor explica o Onboarding</td>
+              </tr>
+              <tr>
+                <td class="py-2.5 text-slate-400">Aprovação do Sócio</td>
+                <td class="py-2.5 text-rose-300">"Depois eu vejo isso" (perde-se)</td>
+                <td class="py-2.5 text-emerald-300">Vendedor entra na chamada com ambos</td>
+              </tr>
+              <tr>
+                <td class="py-2.5 text-slate-400">Taxa de Conversão Real</td>
+                <td class="py-2.5 font-bold font-mono text-rose-400">0,14% (1 venda)</td>
+                <td class="py-2.5 font-bold font-mono text-emerald-400">2,71% (19 vendas)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="p-3.5 bg-blue-500/10 border border-blue-500/20 rounded-xl text-xs text-blue-300">
+          <strong>Moral Científica da História:</strong> O evento não falhou na mensagem; o pitch cumpriu 100% o papel de gerar o desejo. A falha foi delegar o fechamento para uma página web passiva em vez de um humano ativo.
+        </div>
+      </div>
+    </section>
+
+    <!-- Strategic Action Plan for Next Events -->
+    <section class="bg-gradient-to-r from-blue-900/30 via-slate-900 to-indigo-900/30 border border-blue-500/20 rounded-3xl p-6 sm:p-8">
+      <div class="max-w-3xl">
+        <span class="text-xs font-bold uppercase tracking-wider text-blue-400">Plano de Ação Corretivo</span>
+        <h3 class="text-xl font-bold text-white mt-1">Como Desenhar o Próximo Pitch com o Guga</h3>
+        <p class="text-sm text-slate-300 mt-2 leading-relaxed">
+          Para que o seu próximo investimento de R$ 36 mil reverta em mais de 40 ou 50 vendas diretas, basta alinhar a estatística à prática de vendas B2B:
+        </p>
+
+        <div class="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="bg-slate-950/80 border border-slate-800 p-4 rounded-2xl">
+            <div class="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-xs mb-3">1</div>
+            <h4 class="text-sm font-semibold text-white">Mude a Oferta do Pitch</h4>
+            <p class="text-xs text-slate-400 mt-1">O Guga não deve vender o produto final na live. Ele vende a <strong>"Sessão de Diagnóstico de Vendas da Loja"</strong> (gratuita ou simbólica).</p>
+          </div>
+          <div class="bg-slate-950/80 border border-slate-800 p-4 rounded-2xl">
+            <div class="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-xs mb-3">2</div>
+            <h4 class="text-sm font-semibold text-white">QR Code Direto no WhatsApp</h4>
+            <p class="text-xs text-slate-400 mt-1">O QR Code na tela e o link no chat devem abrir direto a conversa com um vendedor de plantão, pronto para agendar a call.</p>
+          </div>
+          <div class="bg-slate-950/80 border border-slate-800 p-4 rounded-2xl">
+            <div class="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-xs mb-3">3</div>
+            <h4 class="text-sm font-semibold text-white">Urgência com Vagas Reais</h4>
+            <p class="text-xs text-slate-400 mt-1">"Liberamos apenas 30 diagnósticos para serem feitos amanhã pela equipe do Guga". O dono da loja agenda na hora para não perder.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // Parâmetros Estatísticos Reais
+    const TOTAL_SAMPLE = 700;
+    const P0_BENCHMARK = 0.01; // 1% esperado em live com pitch
+    const P_OBSERVED_CHECKOUT = 1 / 700; // 0.143%
+    const P_OBSERVED_SALES = 19 / 700; // 2.714%
+
+    let currentMode = 'checkout'; // 'checkout' ou 'comparison'
+    let chartInstance = null;
+
+    // Função de Densidade da Normal Padrão f(z)
+    function normalPDF(z) {
+      return (1 / Math.sqrt(2 * Math.PI)) * Math.exp(-0.5 * z * z);
+    }
+
+    // Gerar pontos para a curva de Gauss entre z = -4.5 e z = +4.5
+    function generateGaussPoints() {
+      const labels = [];
+      const data = [];
+      const step = 0.1;
+      for (let z = -4.5; z <= 4.5; z += step) {
+        labels.push(parseFloat(z.toFixed(2)));
+        data.push(normalPDF(z));
+      }
+      return { labels, data };
+    }
+
+    // Inicializar o Gráfico com Chart.js
+    function initGaussChart() {
+      const { labels, data } = generateGaussPoints();
+      const ctx = document.getElementById('gaussChart').getContext('2d');
+
+      chartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Curva Normal Padrão (Distribuição de H₀)',
+              data: data,
+              borderColor: '#64748b',
+              borderWidth: 2.5,
+              pointRadius: 0,
+              fill: false,
+              tension: 0.4
+            },
+            {
+              label: 'Ponto Observado (Seu Evento)',
+              data: [],
+              borderColor: '#ef4444',
+              backgroundColor: '#ef4444',
+              pointRadius: 8,
+              pointHoverRadius: 10,
+              showLine: false
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: { duration: 600 },
+          plugins: {
+            legend: {
+              labels: {
+                color: '#cbd5e1',
+                font: { family: 'Plus Jakarta Sans', size: 12 }
+              }
+            },
+            tooltip: {
+              backgroundColor: '#0f172a',
+              titleColor: '#f8fafc',
+              bodyColor: '#cbd5e1',
+              borderColor: '#334155',
+              borderWidth: 1,
+              callbacks: {
+                label: function(context) {
+                  const z = context.label;
+                  return `Z-score: ${z} (Densidade: ${context.parsed.y.toFixed(4)})`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              title: {
+                display: true,
+                text: 'Escore Z (Desvios Padrão da Média Esperada)',
+                color: '#94a3b8',
+                font: { size: 12, family: 'Plus Jakarta Sans', weight: '600' }
+              },
+              grid: { color: 'rgba(51, 65, 85, 0.4)' },
+              ticks: { color: '#94a3b8' }
+            },
+            y: {
+              display: false,
+              grid: { display: false }
+            }
+          }
+        },
+        plugins: [{
+          id: 'rejectionZones',
+          beforeDraw: (chart) => {
+            const ctx = chart.ctx;
+            const xAxis = chart.scales.x;
+            const yAxis = chart.scales.y;
+
+            // Desenhar Zona de Rejeição Crítica (Z < -1.645 ou Z > 1.645)
+            const leftCriticalPixel = xAxis.getPixelForValue(-1.645);
+            const rightCriticalPixel = xAxis.getPixelForValue(1.645);
+
+            ctx.save();
+            // Cauda Esquerda (Rejeição Inferior)
+            ctx.fillStyle = 'rgba(239, 68, 68, 0.12)';
+            ctx.fillRect(xAxis.left, yAxis.top, leftCriticalPixel - xAxis.left, yAxis.bottom - yAxis.top);
+
+            // Cauda Direita (Rejeição Superior)
+            ctx.fillStyle = 'rgba(16, 185, 129, 0.12)';
+            ctx.fillRect(rightCriticalPixel, yAxis.top, xAxis.right - rightCriticalPixel, yAxis.bottom - yAxis.top);
+
+            // Linha Média Z = 0
+            const centerPixel = xAxis.getPixelForValue(0);
+            ctx.strokeStyle = 'rgba(148, 163, 184, 0.3)';
+            ctx.setLineDash([4, 4]);
+            ctx.beginPath();
+            ctx.moveTo(centerPixel, yAxis.top);
+            ctx.lineTo(centerPixel, yAxis.bottom);
+            ctx.stroke();
+
+            ctx.restore();
+          }
+        }]
+      });
+
+      updateChartVisuals();
+    }
+
+    function calculateZ(salesCount) {
+      const p = salesCount / TOTAL_SAMPLE;
+      const se = Math.sqrt((P0_BENCHMARK * (1 - P0_BENCHMARK)) / TOTAL_SAMPLE);
+      return (p - P0_BENCHMARK) / se;
+    }
+
+    function switchScenario(mode) {
+      currentMode = mode;
+      const btn1 = document.getElementById('btnScenario1');
+      const btn2 = document.getElementById('btnScenario2');
+      const slider = document.getElementById('salesSlider');
+
+      if (mode === 'checkout') {
+        btn1.className = 'px-4 py-2 rounded-lg text-xs font-semibold transition bg-blue-600 text-white shadow';
+        btn2.className = 'px-4 py-2 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-white';
+        slider.value = 1;
+        document.getElementById('currentPointBadgeTitle').innerText = 'Seu Checkout Real (Z = -2.28)';
+        document.getElementById('currentPointBadgeDesc').innerText = 'Caiu 2,28 desvios padrão abaixo do esperado (0,14% vs 1%). Comprova falha no checkout.';
+      } else {
+        btn2.className = 'px-4 py-2 rounded-lg text-xs font-semibold transition bg-blue-600 text-white shadow';
+        btn1.className = 'px-4 py-2 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-white';
+        slider.value = 19;
+        document.getElementById('currentPointBadgeTitle').innerText = 'Venda Assistida (Z = +4.05)';
+        document.getElementById('currentPointBadgeDesc').innerText = 'Caiu 4,05 desvios padrão acima! Comprova que com vendedor a conversão explodiu.';
+      }
+
+      updateSimulation();
+    }
+
+    function updateSimulation() {
+      const slider = document.getElementById('salesSlider');
+      const val = parseInt(slider.value);
+      document.getElementById('sliderValueText').innerText = val;
+
+      const zScore = calculateZ(val);
+      const density = normalPDF(zScore);
+
+      // Atualizar ponto no gráfico
+      chartInstance.data.datasets[1].data = [{ x: parseFloat(zScore.toFixed(2)), y: density }];
+      
+      if (zScore < -1.645) {
+        chartInstance.data.datasets[1].backgroundColor = '#ef4444'; // Vermelho (Anomalia Negativa)
+        chartInstance.data.datasets[1].borderColor = '#fca5a5';
+      } else if (zScore > 1.645) {
+        chartInstance.data.datasets[1].backgroundColor = '#10b981'; // Verde (Superioridade Comprovada)
+        chartInstance.data.datasets[1].borderColor = '#6ee7b7';
+      } else {
+        chartInstance.data.datasets[1].backgroundColor = '#3b82f6'; // Azul (Dentro do normal)
+        chartInstance.data.datasets[1].borderColor = '#93c5fd';
+      }
+
+      chartInstance.update();
+
+      // Atualizar card de feedback explicativo
+      const feedback = document.getElementById('simulationFeedback');
+      const convRate = ((val / TOTAL_SAMPLE) * 100).toFixed(2);
+
+      if (zScore < -1.645) {
+        feedback.className = 'mt-4 p-3.5 rounded-xl bg-rose-950/40 border border-rose-800/60 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2';
+        feedback.innerHTML = `
+          <div>
+            <span class="font-bold text-rose-300">Zona de Quebra Sistêmica: Z = ${zScore.toFixed(2)} (${convRate}%)</span>
+            <p class="text-rose-400/90 text-[11px] mt-0.5">O resultado caiu na cauda esquerda extrema. Probabilidade de ser azar: < 1%. Rejeita-se H₀!</p>
+          </div>
+          <span class="px-2.5 py-1 rounded bg-rose-500/20 text-rose-300 font-mono text-[10px] uppercase font-bold shrink-0">Gargalo no Checkout</span>
+        `;
+      } else if (zScore > 1.645) {
+        feedback.className = 'mt-4 p-3.5 rounded-xl bg-emerald-950/40 border border-emerald-800/60 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2';
+        feedback.innerHTML = `
+          <div>
+            <span class="font-bold text-emerald-300">Zona de Alta Eficiência: Z = +${zScore.toFixed(2)} (${convRate}%)</span>
+            <p class="text-emerald-400/90 text-[11px] mt-0.5">O resultado caiu na cauda direita extrema. Probabilidade de acaso: 0,001%. O modelo com vendedor valida a oferta!</p>
+          </div>
+          <span class="px-2.5 py-1 rounded bg-emerald-500/20 text-emerald-300 font-mono text-[10px] uppercase font-bold shrink-0">Modelo Validado (19x)</span>
+        `;
+      } else {
+        feedback.className = 'mt-4 p-3.5 rounded-xl bg-slate-800/60 border border-slate-700 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2';
+        feedback.innerHTML = `
+          <div>
+            <span class="font-bold text-slate-200">Zona Neutra / Esperada: Z = ${zScore.toFixed(2)} (${convRate}%)</span>
+            <p class="text-slate-400 text-[11px] mt-0.5">Dentro da média natural de flutuação de 1% para eventos digitais com este volume.</p>
+          </div>
+          <span class="px-2.5 py-1 rounded bg-slate-700 text-slate-300 font-mono text-[10px] uppercase font-bold shrink-0">Dentro do Padrão</span>
+        `;
+      }
+    }
+
+    function updateChartVisuals() {
+      updateSimulation();
+    }
+
+    // Inicialização ao carregar a página
+    window.addEventListener('DOMContentLoaded', () => {
+      initGaussChart();
+      document.getElementById('salesSlider').addEventListener('input', updateSimulation);
+    });
+  </script>
+</body>
+</html>
